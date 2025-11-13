@@ -1,58 +1,57 @@
 
+# 🧠 RAG con LangChain, OpenAI y Pinecone
 
-# 🧠 RAG con LangChain y Gemini 2.5
-
-Este proyecto implementa un **sistema de Recuperación Aumentada por Generación (RAG)** usando **LangChain** y el modelo **Gemini 2.5** de Google.
-El objetivo es demostrar cómo integrar herramientas de recuperación de contexto, embeddings y agentes inteligentes para responder preguntas basadas en documentos locales.
+Este proyecto implementa un **sistema de Recuperación Aumentada por Generación (RAG)** utilizando **LangChain**, **OpenAI GPT** y **Pinecone**.  
+El sistema permite responder preguntas fundamentadas en el contenido de documentos o páginas web mediante la integración de embeddings, recuperación semántica y generación de lenguaje natural.
 
 ---
 
 ## ⚙️ Arquitectura del Proyecto
 
-La arquitectura del sistema está compuesta por los siguientes elementos:
+La arquitectura del sistema RAG está compuesta por los siguientes módulos:
 
-1. **Carga de documentos:**
-   Se leen archivos o páginas web y se convierten en objetos utilizables por LangChain.
+1. **Carga de documentos:**  
+   Se obtienen los textos desde URLs o archivos locales y se limpian usando `BeautifulSoup`.
 
-2. **División en fragmentos (chunking):**
-   El texto se divide en secciones más pequeñas para permitir una búsqueda más eficiente.
+2. **División de texto (Chunking):**  
+   Se fragmenta el texto con `RecursiveCharacterTextSplitter` para optimizar la recuperación semántica.
 
-3. **Generación de embeddings:**
-   Cada fragmento se transforma en una representación numérica (vector) mediante modelos de embeddings.
+3. **Generación de embeddings:**  
+   Cada fragmento se convierte en un vector mediante `OpenAIEmbeddings`.
 
-4. **Almacenamiento vectorial:**
-   Los vectores se guardan en una base de datos temporal en memoria para realizar búsquedas por similitud semántica.
+4. **Almacenamiento vectorial:**  
+   Los embeddings se indexan en **Pinecone**, que permite realizar búsquedas por similitud.
 
-5. **Herramientas de recuperación:**
-   Se implementa una función que permite buscar y recuperar los fragmentos más relevantes de acuerdo con la consulta del usuario.
+5. **Recuperación y construcción de contexto:**  
+   LangChain busca los fragmentos más relevantes con respecto a la consulta del usuario.
 
-6. **Agente inteligente (RAG):**
-   Se configura un agente basado en el modelo **Gemini 2.5 Flash Lite**, que usa la herramienta de recuperación para construir respuestas fundamentadas en el contenido del documento.
+6. **Generación de respuesta (RAG):**  
+   Se utiliza el modelo **GPT-4-turbo** de OpenAI para generar una respuesta enriquecida con el contexto recuperado.
 
-7. **Middleware dinámico:**
-   Se añade una capa que permite al agente incorporar automáticamente contexto relevante a cada consulta, mejorando la precisión de las respuestas.
+---
+
+## 🧭 Diagrama de Arquitectura
+
+
 
 ---
 
 ## 🧩 Componentes Principales
 
-| Componente                         | Descripción                                                                 |
-| ---------------------------------- | --------------------------------------------------------------------------- |
-| **LangChain**                      | Framework principal para construir el agente RAG.                           |
-| **Gemini 2.5 Flash Lite**          | Modelo de lenguaje usado para la generación de respuestas.                  |
-| **LangSmith**                      | Plataforma de observabilidad para rastrear la ejecución del agente.         |
-| **BeautifulSoup (bs4)**            | Utilizado para limpiar y procesar contenido HTML.                           |
-| **HuggingFaceEmbeddings**          | Genera los embeddings para el almacenamiento vectorial.                     |
-| **InMemoryVectorStore**            | Base de datos temporal en memoria para realizar búsquedas semánticas.       |
-| **RecursiveCharacterTextSplitter** | Divide el texto en fragmentos más pequeños para optimizar el procesamiento. |
+| Componente                         | Descripción                                                         |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| **LangChain**                      | Framework principal para construir el flujo RAG.                    |
+| **OpenAI GPT-4-turbo**             | Modelo de lenguaje que genera respuestas fundamentadas en contexto. |
+| **OpenAIEmbeddings**               | Genera representaciones vectoriales de los fragmentos de texto.     |
+| **Pinecone**                       | Base de datos vectorial para búsquedas semánticas.                  |
+| **BeautifulSoup (bs4)**            | Limpieza y extracción de texto desde HTML.                          |
+| **RecursiveCharacterTextSplitter** | Divide el texto en fragmentos para el embedding.                    |
 
 ---
 
-## 🧰 Instalación y Ejecución
+## 🧰 Instalación y Configuración
 
-### 1. Clonar el repositorio
-
-Ejecuta en tu terminal:
+### 1️⃣ Clonar el repositorio
 
 ```bash
 git clone https://github.com/tu-usuario/Taller-LangChain-LLM.git
@@ -61,69 +60,137 @@ cd Taller-LangChain-LLM
 
 ---
 
-### 2. Instalar dependencias
-
-Instala las librerías necesarias para ejecutar el proyecto:
+### 2️⃣ Crear entorno virtual (opcional pero recomendado)
 
 ```bash
-pip install langchain langchain-community langchain-text-splitters langchain-google-genai langsmith bs4 sentence-transformers
+python -m venv .venv
+.venv\Scripts\activate   # En Windows
+# source .venv/bin/activate   # En macOS o Linux
 ```
 
 ---
 
-### 3. Configurar variables de entorno
-
-Para habilitar el rastreo y la conexión con los servicios externos, debes configurar las variables de entorno.
-Estas incluyen las claves de API de **LangSmith** y **Google**.
-
-Ejemplo de configuración:
+### 3️⃣ Instalar dependencias
 
 ```bash
-LANGSMITH_TRACING "true"
-LANGSMITH_API_KEY "tu_api_key_de_langsmith"
-GOOGLE_API_KEY "tu_api_key_de_google"
+pip install langchain openai pinecone-client langchain-community langchain-text-splitters beautifulsoup4
 ```
 
-> 💡 *Reemplaza las claves con tus valores personales antes de ejecutar el proyecto.*
+---
+
+### 4️⃣ Configurar variables de entorno
+
+Creamos un archivo `.env` en la raíz del proyecto con tus claves:
+
+```bash
+OPENAI_API_KEY=""
+PINECONE_API_KEY=""
+PINECONE_ENVIRONMENT=""
+```
+
 
 ---
 
-### 4. Ejecutar el notebook o script
+## 🚀 Ejecución del Proyecto
 
-Abre el archivo `Guia.ipynb` y ejecuta las celdas en orden para:
+Tenemos tres opciones:
 
-1. Cargar y limpiar el documento fuente.
-2. Dividir el texto en fragmentos.
-3. Generar embeddings y almacenarlos.
-4. Crear el agente RAG.
-5. Realizar consultas al modelo con contexto dinámico.
+1. El proyecto se ejecuta directamente en el notebook `RAG-OPENAI-PINECONE-ipynb`.
+
+### Pasos dentro del notebook:
+
+1. **Instalar dependencias** (primera celda).
+2. **Configurar las API keys** (segunda celda).
+3. **Cargar el documento** desde una URL (ejemplo: blog de Lilian Weng).
+4. **Generar embeddings** e indexarlos en Pinecone.
+5. **Consultar el sistema** con una pregunta en lenguaje natural.
+
+---
+2. Podemos ejecutar el proyecto con los archivos .py, para esto seguiremos los siguientes comandos:
+
+```bash
+python src/app.py
+```
+Esto desde la raiz del proyecto.
 
 ---
 
-### 5. Resultados esperados
+## 🧪 Ejemplo de Ejecución
 
-El agente debe ser capaz de:
+1. Para el proyecto ejecutando desde cosola app.py:
 
-* Recuperar fragmentos relevantes del documento según la consulta.
-* Generar respuestas completas utilizando el contexto recuperado.
-* Incorporar automáticamente nueva información contextual en cada interacción.
+**Consulta:**
+
+![alt text](images/image.png)
+
+```text
+Que es la ia?
+```
+
+**Respuesta generada:**
+
+![alt text](images/image2.png)
+```text
+La inteligencia artificial (IA) consiste en enseñar a las máquinas a realizar tareas que normalmente requieren inteligencia humana, como aprender, adaptarse y crear. Esto incluye comprender el lenguaje, analizar datos y generar sugerencias útiles. La IA combina diversas disciplinas, como informática, análisis de datos, estadística, neurociencia, lingüística y filosofía. Un ejemplo de IA es el reconocimiento óptico de caracteres (OCR), que convierte texto en imágenes en datos estructurados, facilitando la obtención de información valiosa.
+```
+2. Para el notebook:
+
+**Consulta:**
+
+![alt text](images/image3.png)
+
+```text  
+What is task decomposition?
+```
+
+**Respuesta generada:**
+
+![alt text](images/image-1.png)
+
+```
+--- Respuesta del agente RAG ---
+
+Task decomposition is the process of breaking down a larger task into smaller, more manageable sub-tasks or goals. This can be achieved in several ways:
+
+1. Using large language models (LLMs) with simple prompts, such as asking for "Steps for XYZ" or "What are the subgoals for achieving XYZ?"
+2. Employing task-specific instructions, like "Write a story outline" for writing a novel.
+3. Incorporating human inputs to guide the decomposition process.
+
+Additionally, there is a distinct approach called LLM+P, which involves using an external classical planner for long-horizon planning. This method utilizes the Planning Domain Definition Language (PDDL) to describe the planning problem, where the LLM translates the problem into PDDL, requests a classical planner to generate a plan, and then translates that plan back into natural language.
+Si quieres probar ask() ahora, descomenta la llamada o ejecuta ask("tu pregunta").             
+```
 
 ---
 
-## 📸 Ejemplo de ejecución
+## 🖼️ Captura de Ejemplo y explicación
 
-El siguiente ejemplo muestra cómo el agente responde a una pregunta compleja basándose en el contenido del documento cargado:
+Al ejecutar nuestro archivo app.py, podemos ver que se cargan los documentos de referencia, o bien el contenido de cualquier pagina web que le proporcionemos a nuestro programa, en el caos de cargar un docuemento, en este caso Referencias.txt podremos ver la siguiente salida en consola cuando el docuemento es porcesado:
 
-> **Usuario:** What is task decomposition?
-> **Agente:** Task decomposition is the process of breaking a complex goal into smaller, manageable tasks that can be solved sequentially or hierarchically...
+![alt text](images/1.png)
 
-*(El resultado puede variar según el modelo y los documentos cargados.)*
+En esta ejecución, el sistema cargó un archivo local desde el equipo y lo procesó como fuente de conocimiento. El pipeline de RAG leyó el documento, lo dividió en 10 fragmentos (chunks) y posteriormente generó los embeddings correspondientes para almacenarlos en la base vectorial Pinecone. Este resultado demuestra que el flujo completo —desde la carga hasta la indexación— funciona correctamente con documentos locales de tamaño reducido.
+
+Mientras que cuando se carga una pagina web como por ejemplo https://lilianweng.github.io/posts/2023-06-23-agent/ vemos lo siguiente:
+
+![alt text](images/5.png)
+
+En este caso, el sistema utilizó el cargador web para extraer el contenido de una página en línea, procesándolo de la misma forma que un documento local. Debido a que la página contenía más información, el texto se dividió en 63 fragmentos, los cuales fueron convertidos en vectores e indexados en Pinecone. Esta ejecución evidencia que el agente RAG puede integrar y comprender fuentes de datos externas, permitiendo consultas sobre información proveniente directamente de la web.
+
+En los dos casos, el rag funciona correctamente y podremos realizarle preguntas como las siguientes:
+
+![alt text](images/2.png)
+
+![alt text](images/3.png)
+
+![alt text](images/4.png)
+
+En este caso el agente respondio teniendo en cuenta la pagina web proporcionada de referencia, como podemos ver, funciona de forma correcta. 
 
 ---
 
 ## 👤 Autor
 
 **Camilo Andrés Quintero Rodríguez**
-Proyecto: *Crea un agente RAG con LangChain*
-
+Proyecto: *Creación de un agente RAG con LangChain, OpenAI y Pinecone*
+Escuela Colombiana de Ingeniería Julio Garavito – 2025
 
